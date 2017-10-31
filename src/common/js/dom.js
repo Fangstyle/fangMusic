@@ -14,3 +14,11 @@ export function addClass(el, className) {
   classList.push(className)
   el.className = classList.join(' ')
 }
+
+export function getData(el, name, value) {
+  let prefix = 'data-'
+  if (value) {
+    return el.setAttribute(prefix + name, value)
+  }
+  return el.getAttribute(prefix + name)
+}
