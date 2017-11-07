@@ -1,20 +1,18 @@
 <template>
   <transition name="slide">
-    <div class="singer-detail">
-      详情页
-    </div>
+    <music-list :title="title" :songsList="songList" :bg-image="bgImage"></music-list>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
   import {mapGetters} from 'vuex'
+  import MusicList from 'components/music-list/music-list'
   import {getSingerDetail} from 'api/singer'
   import {createSong} from 'common/js/song'
   import {ERR_OK} from 'api/config'
 
   export default {
     created() {
-      console.log('vuex-singer', this.singer)
       this._getSingerDetail()
     },
     data() {
@@ -47,22 +45,23 @@
       }
     },
     computed: {
+      title() {
+        return this.singer.name
+      },
+      bgImage() {
+        return this.singer.avatar
+      },
       ...mapGetters(['singer']
       )
+    },
+    components: {
+      MusicList
     }
   }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
-  .singer-detail
-    position fixed
-    left: 0
-    right: 0
-    top: 0
-    bottom: 0
-    background-color: $color-background
-    z-index: 200
 
   .slide-enter-active, .slide-leave-active
     transition: all 0.3s
