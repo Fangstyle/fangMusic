@@ -13,9 +13,11 @@
       </div>
       <div class="filter" ref="filter"></div>
     </div>
-    <scroll :data="songsList" class="list" ref="list">
+    <div class="bg-layer" ref="layer"></div>
+    <scroll @scroll="scroll" :data="songsList" :probeType="probeType" :listenScroll="listenScroll" class="list"
+            ref="list">
       <div class="song-list-wrapper">
-        <song-list :songList="songsList" :rank="false"></song-list>
+        <song-list @select="select" :songList="songsList" :rank="false"></song-list>
       </div>
     </scroll>
   </div>
@@ -24,6 +26,9 @@
 <script type="text/ecmascript-6">
   import SongList from 'base/song-list/song-list'
   import Scroll from 'base/scroll/scroll'
+  import {mapActions} from 'vuex'
+  const RESERVED_HEIGHT = 40
+
   export default {
     props: {
       bgImage: {
@@ -53,9 +58,56 @@
         scrollY: 0
       }
     },
+    created() {
+      this.probeType = 3
+      this.listenScroll = true
+    },
     mounted() {
-      this.imageHeight = this.$refs.bgImage.clientHeight
-      this.$refs.list.$el.style.top = `${this.imageHeight}px`
+      setTimeout(() => {
+        console.log(this.$refs.bgImage)
+        this.imageHeight = this.$refs.bgImage.clientHeight
+        this.minTransalteY = -this.imageHeight + RESERVED_HEIGHT
+        this.$refs.list.$el.style.top = `${this.imageHeight}px`
+      }, 20)
+    },
+    methods: {
+      scroll(pos) {
+        this.scrollY = pos.y
+      },
+      select(song, index) {
+        console.log(song, index)
+        this.selectPlay({list: this.songsList, index: index})
+      },
+      ...mapActions(['selectPlay'])
+    },
+    watch: {
+      scrollY(newY) {
+        let zIndex = 0
+        let blur = 0
+        let scale = 1
+        let percent = Math.abs(newY / this.imageHeight)
+        let translateY = Math.max(this.minTransalteY, newY) // 因为向下滚动 newY为负值，所以取大的
+        this.$refs.layer.style['transform'] = `translate3d(0,${translateY}px,0)`
+        this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
+        if (newY > 0) {
+          scale = 1 + percent
+          zIndex = 10
+        } else {
+          blur = Math.min(20, percent * 20)
+        }
+        if (newY < this.minTransalteY) {
+          zIndex = 10
+          this.$refs.bgImage.style['paddingTop'] = 0
+          this.$refs.playBtn.style.display = 'none'
+          this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+        } else {
+          this.$refs.bgImage.style['paddingTop'] = '70%'
+          this.$refs.bgImage.style.height = 0
+          this.$refs.playBtn.style.display = 'block'
+        }
+        this.$refs.bgImage.style['zIndex'] = zIndex
+        this.$refs.bgImage.style['transform'] = `scale(${scale})`
+      }
     },
     components: {Scroll, SongList}
   }
