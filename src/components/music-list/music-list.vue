@@ -1,12 +1,12 @@
 <template>
   <div class="music-list">
-    <div class="back">
+    <div @click="back" class="back">
       <i class="icon-back"></i>
     </div>
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div ref="playBtn" v-show="songsList.length>0" class="play">
+        <div ref="playBtn" v-show="songsList.length>0" class="play" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -17,7 +17,7 @@
     <scroll @scroll="scroll" :data="songsList" :probeType="probeType" :listenScroll="listenScroll" class="list"
             ref="list">
       <div class="song-list-wrapper">
-        <song-list @select="select" :songList="songsList" :rank="false"></song-list>
+        <song-list @select="select" :songList="songsList" :rank="rank"></song-list>
       </div>
     </scroll>
   </div>
@@ -27,9 +27,11 @@
   import SongList from 'base/song-list/song-list'
   import Scroll from 'base/scroll/scroll'
   import {mapActions} from 'vuex'
+  import {playlistMixin} from 'common/js/mixin'
   const RESERVED_HEIGHT = 40
 
   export default {
+    mixins: [playlistMixin],
     props: {
       bgImage: {
         type: String,
@@ -71,14 +73,26 @@
       }, 20)
     },
     methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
+      back() {
+        this.$router.back()
+      },
       scroll(pos) {
         this.scrollY = pos.y
       },
       select(song, index) {
-        console.log(song, index)
-        this.selectPlay({list: this.songsList, index: index})
+        this.selectPlay({list: this.songsList, index})
       },
-      ...mapActions(['selectPlay'])
+      random() {
+        this.randomPlay({
+          list: this.songsList
+        })
+      },
+      ...mapActions(['selectPlay', 'randomPlay'])
     },
     watch: {
       scrollY(newY) {
