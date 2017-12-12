@@ -1,5 +1,11 @@
 <template>
-  <div ref="suggest" class="suggest">
+  <scroll ref="suggest"
+          class="suggest"
+          :data="result"
+          :pullup="pullup"
+          :beforeScroll="beforeScroll"
+          @scrollToEnd="searchMore"
+  >
     <ul class="suggest-list">
       <li class="suggest-item" v-for="item in result">
         <div class="icon">
@@ -10,13 +16,14 @@
         </div>
       </li>
     </ul>
-  </div>
+  </scroll>
 </template>
 
 <script type="text/ecmascript-6">
   import {search} from 'api/search'
   import {ERR_OK} from 'api/config'
   import {createSong} from 'common/js/song'
+  import Scroll from 'base/scroll/scroll'
 
   const TYPE_SINGER = 'singer'
   const perpage = 20
@@ -36,16 +43,31 @@
       return {
         page: 1,
         result: [],
-        hasMore: true
+        hasMore: true,
+        beforeScroll: true,
+        pullup: true
       }
     },
     methods: {
       search() {
         this.page = 1
         this.hasMore = true
+        this.$refs.suggest.scrollTo(0, 0)
         search(this.query, this.page, this.showSinger, perpage).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._genResult(res.data)
+          }
+        })
+      },
+      searchMore() {
+        if (!this.hasMore) {
+          return
+        }
+        this.page++
+        search(this.query, this.page, this.showSinger, perpage).then((res) => {
+          if (res.code === ERR_OK) {
+            this.result = this.result.concat(this._genResult(res.data))
+            this._checkMore(res.data)
           }
         })
       },
@@ -74,6 +96,12 @@
         console.log('ret', ret)
         return ret
       },
+      _checkMore(data) {
+        const song = data.song
+        if (!song.list.length || (song.curnum + song.curpage * perpage) > song.totalnum) {
+          this.hasMore = false
+        }
+      },
       _normalizeSongs(list) {
         let ret = []
         list.forEach((musicData) => {
@@ -89,7 +117,7 @@
         this.search(newQuery)
       }
     },
-    components: {}
+    components: {Scroll}
   }
 </script>
 
