@@ -340,7 +340,6 @@
       },
       handleLyric({lineNum, txt}) {
         this.currentLineNum = lineNum
-        console.log('this.currentLineNum: ', this.currentLineNum)
         if (lineNum > 5) {
           let lineEl = this.$refs.lyricLine[lineNum - 5]
           this.$refs.lyricList.scrollToElement(lineEl, 1000)
