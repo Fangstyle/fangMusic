@@ -4,6 +4,7 @@
           :data="result"
           :pullup="pullup"
           :beforeScroll="beforeScroll"
+          @beforeScroll="listScroll"
           @scrollToEnd="searchMore"
   >
     <ul class="suggest-list">
@@ -16,6 +17,9 @@
         </div>
       </li>
     </ul>
+    <div v-show="!hasMore && !result.length" class="no-result-wrapper">
+      <no-result title="抱歉，暂无搜索结果"></no-result>
+    </div>
   </scroll>
 </template>
 
@@ -26,6 +30,7 @@
   import Scroll from 'base/scroll/scroll'
   import Singer from 'common/js/singer'
   import {mapMutations, mapActions} from 'vuex'
+  import NoResult from 'base/no-result/no-result'
 
   const TYPE_SINGER = 'singer'
   const perpage = 20
@@ -58,6 +63,7 @@
         search(this.query, this.page, this.showSinger, perpage).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._genResult(res.data)
+            this._checkMore(res.data)
           }
         })
       },
@@ -72,10 +78,12 @@
           })
           this.setSinger(singer)
         } else {
-          console.log('songs', item)
           this.insertSong(item)
         }
         this.$emit('select', item)
+      },
+      listScroll() {
+        this.$emit('listScroll')
       },
       searchMore() {
         if (!this.hasMore) {
@@ -116,6 +124,7 @@
       },
       _checkMore(data) {
         const song = data.song
+        console.log('data sifd', song)
         if (!song.list.length || (song.curnum + song.curpage * perpage) > song.totalnum) {
           this.hasMore = false
         }
@@ -139,7 +148,7 @@
         this.search(newQuery)
       }
     },
-    components: {Scroll}
+    components: {Scroll, NoResult}
   }
 </script>
 
