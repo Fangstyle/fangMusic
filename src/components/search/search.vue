@@ -16,17 +16,19 @@
         <div class="search-history" v-show="searchHistory.length">
           <h1 class="title">
             <span class="text">搜索历史</span>
-            <span class="clear">
+            <span @click="showConfirm" class="clear">
                 <i class="icon-clear"></i>
               </span>
           </h1>
-          <search-list :searches="searchHistory"></search-list>
+          <search-list @delete="deleteSearchHistory" @select="historyListSelect"
+                       :searches="searchHistory"></search-list>
         </div>
       </div>
     </div>
     <div class="search-result" ref="searchResult" v-show="query">
       <suggest @select="saveSearch" @listScroll="blurInput" ref="suggest" :query="query"></suggest>
     </div>
+    <confirm ref="confirm" @confirm="clearSearchHistory" text="是否清空所有搜索历史" confirmBtnText="清空"></confirm>
     <router-view></router-view>
   </div>
 </template>
@@ -37,7 +39,9 @@
   import {ERR_OK} from 'api/config'
   import Suggest from 'components/suggest/suggest'
   import SearchList from 'base/search-list/search-list'
+  import Confirm from 'base/confirm/confirm'
   import {mapGetters, mapActions} from 'vuex'
+
   export default {
     created() {
       this._getHotKey()
@@ -59,12 +63,18 @@
         console.log('query', query)
         this.query = query
       },
+      historyListSelect(value) {
+        this.$refs.searchBox.setQuery(value.name)
+      },
       blurInput() {
         this.$refs.searchBox.blur()
       },
       saveSearch(item) {
         console.log('save', item)
         this.saveSearchHistory(item)
+      },
+      showConfirm() {
+        this.$refs.confirm.show()
       },
       _getHotKey() {
         getHotKey().then((res) => {
@@ -73,12 +83,13 @@
           }
         })
       },
-      ...mapActions(['saveSearchHistory'])
+      ...mapActions(['saveSearchHistory', 'deleteSearchHistory', 'clearSearchHistory'])
     },
     components: {
       SearchBox,
       Suggest,
-      SearchList
+      SearchList,
+      Confirm
     }
   }
 </script>
