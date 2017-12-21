@@ -24,10 +24,14 @@ function deleteFromArray(arr, compare) {
   }
 }
 
+export function loadSearch() {
+  return storage.get(SEARCH_KEY, [])
+}
+
 export function deleteSearch(query) {
   let searches = loadSearch()
   deleteFromArray(searches, (item) => {
-    item === query
+    return item.id === query.id
   })
   storage.set(SEARCH_KEY, searches)
   return searches
@@ -36,10 +40,6 @@ export function deleteSearch(query) {
 export function clearSearch() {
   storage.remove(SEARCH_KEY)
   return []
-}
-
-export function loadSearch() {
-  return storage.get(SEARCH_KEY, [])
 }
 
 export function saveSearch(query) {
